@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-COMPATIBLE" content="IE=EDGE">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/icon?family=Roboto" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <title>Tablas de Verdad</title>
+</head>
+<body>
+<main id="main">
+    <!-- Input -->
+    <div class="align-center container">
+        <h1>Generador de tablas de verdad</h1>
+        <p>Escribí la expresión lógica en el siguiente formato:<br>
+            Conjunción = <span class="example">PQ</span>&emsp;
+            Disyunción = <span class="example">P+Q</span>&emsp;
+            Negación = <span class="example">P'</span><br>
+            NConjunción = <span class="example">(PQ)'</span>
+            NDisyunción = <span class="example">(P+Q)'</span></p>
+        <input autofocus id="expression" oninput="build()" placeholder="Ejemplo: (AB)'C+D" type="text">
+        <noscript>
+            <p>Esta app necesita javascript, copate.</p>
+        </noscript>
+    </div>
+    <br>
+    <!-- Output -->
+    <div class="align-center container">
+        <div id="table-placeholder"></div>
+    </div>
+</main>
+<!-- Custom Scripts -->
+<script src="generator.js"></script>
+</body>
+</html>
