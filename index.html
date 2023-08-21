@@ -1,37 +1,232 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-COMPATIBLE" content="IE=EDGE">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://fonts.googleapis.com/icon?family=Roboto" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="style.css">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Tablas de Verdad</title>
-</head>
-<body>
-<main id="main">
-    <!-- Input -->
-    <div class="align-center container">
-        <h1>Generador de tablas de verdad</h1>
-        <p>Escribí la expresión lógica en el siguiente formato:<br>
-            Conjunción = <span class="example">PQ</span>&emsp;
-            Disyunción = <span class="example">P+Q</span>&emsp;
-            Negación = <span class="example">P'</span><br>
-            NConjunción = <span class="example">(PQ)'</span>
-            NDisyunción = <span class="example">(P+Q)'</span></p>
-        <input autofocus id="expression" oninput="build()" placeholder="Ejemplo: (AB)'C+D" type="text">
-        <noscript>
-            <p>Esta app necesita javascript, copate.</p>
-        </noscript>
+    <style>
+      body {
+        color: #555;
+        background-color: #fff;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+          "Segoe UI Symbol";
+      }
+
+      input[type="text"],
+      textarea {
+        font-size: 1em;
+        padding: 5px 15px;
+        border: 1px solid #aaa;
+        border-radius: 2px;
+        outline: none;
+      }
+      .rows {
+        padding-bottom: 5px;
+      }
+      .rows label {
+        width: 220px;
+        display: inline-block;
+        vertical-align: top;
+      }
+      button {
+        border: 1px solid #aaa;
+        padding: 5px 15px;
+        border-radius: 4px;
+        outline: none;
+      }
+      button:hover {
+        background-color: #f0f0f0;
+      }
+      button:active {
+        background-color: #f9f9f9;
+      }
+      th,
+      td {
+        border: solid #eee;
+        border-width: 1px 0 0 1px;
+        padding: 2px 10px;
+      }
+      th {
+        background-color: #f0f0f0;
+        font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
+        font-weight: 500;
+      }
+      td.true {
+        color: #1da160;
+      }
+      td.false {
+        color: #ff7070;
+      }
+      tr:hover td {
+        background-color: #f0f0f0;
+      }
+      table {
+        border: solid #ccc;
+        border-width: 0 1px 1px 0;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <div class="rows">
+        <label>Variables (Separadas con coma)</label>
+        <input type="text" id="vars" value="P,Q" />
+      </div>
+      <div class="rows">
+        <label>Expresiones (Separadas por coma)</label>
+        <textarea id="expression" rows="5" cols="80">
+( P || Q ), ( P && Q )</textarea
+        >
+      </div>
+      <div class="rows">
+        <button id="getResult">Generar Tabla de Verdad</button>
+      </div>
     </div>
-    <br>
-    <!-- Output -->
-    <div class="align-center container">
-        <div id="table-placeholder"></div>
-    </div>
-</main>
-<!-- Custom Scripts -->
-<script src="generator.js"></script>
-</body>
+    <div id="result"></div>
+    <script>
+      var vars = ["P", "Q"],
+        expressions = ["( P || Q )", "( P && Q )"];
+
+      document.getElementById("getResult").addEventListener("click", () => {
+        var len = vars.length,
+          splitBy = Math.round(len / 2),
+          trueSet,
+          trues = [],
+          falses = [],
+          truthData = [];
+
+        vars = document.getElementById("vars").value.split(",");
+        expressions = document.getElementById("expression").value.split(",");
+
+        truthData.push(truth(vars, vars, true));
+        for (var i = 1; i <= splitBy; i++) {
+          trueSet = reduceToCombinations(permut(vars, i));
+
+          trueSet.forEach(truthSrc => {
+            trues = truth(vars, truthSrc);
+            truthData.push(trues);
+          });
+        }
+        truthData.push(truth(vars, vars));
+
+        writeTruthTable(truthData);
+      });
+
+      function truth(set, truths, reverse) {
+        var w = {};
+
+        set.forEach(
+          v => (w[v] = (truths.indexOf(v) >= 0 ? true : false) ^ reverse)
+        );
+
+        return w;
+      }
+
+      function reduceToCombinations(arr) {
+        var i = 1,
+          lastEl;
+
+        arr = arr
+          .map(v => {
+            return v
+              .split("")
+              .sort()
+              .join("");
+          })
+          .sort();
+
+        lastEl = arr[0];
+        while (i < arr.length) {
+          if (arr[i] == lastEl) {
+            arr.splice(i, 1);
+          } else {
+            lastEl = arr[i];
+            i++;
+          }
+        }
+
+        arr = arr.map(v => {
+          return v.split("");
+        });
+
+        return arr;
+      }
+
+      function writeTruthTable(truthData) {
+        var table = "<table cellpadding=0 cellspacing=0>",
+          keys,
+          vals,
+          exprRes;
+
+        table += "<thead><tr>";
+        vars.forEach(v => {
+          table += "<th>";
+          table += v;
+          table += "</th>";
+        });
+        expressions.forEach(v => {
+          table += "<th>";
+          table += v;
+          table += "</th>";
+        });
+        table += "</tr></thead>";
+
+        truthData.forEach(v => {
+          vals = [];
+          keys = [];
+          table += "<tr>";
+          console.log(v);
+          for (i in v) {
+            vals.push(v[i]);
+            keys.push(i);
+            table += "<td>";
+            table += v[i];
+            table += "</td>";
+          }
+          for (var i = 0; i < keys.length; i++) {
+            eval(`var ${keys[i]} = ${vals[i]};`);
+          }
+          expressions.forEach(expr => {
+            exprRes = eval(expr);
+            table += `<td class="${!!exprRes}">`;
+            table += exprRes ? "V" : "F";
+            table += "</td>";
+          });
+
+          table += "</tr>";
+        });
+
+        table += "</table>";
+
+        document.getElementById("result").innerHTML = table;
+      }
+
+      function permut(arr, c) {
+        var buf = [],
+          len,
+          arrSlice,
+          permArr,
+          proArr;
+        if (c <= 1) {
+          return arr;
+        } else {
+          len = arr.length;
+          for (var i = 0; i < len; i++) {
+            arrSlice = arr.slice(0, i).concat(arr.slice(i + 1));
+            permArr = permut(arrSlice, c - 1);
+            proArr = [];
+            for (var y = 0; y < permArr.length; y++) {
+              proArr.push([arr[i]].concat(permArr[y]).join(""));
+            }
+            buf.push(...proArr);
+          }
+        }
+        return buf;
+      }
+    </script>
+  </body>
 </html>
