@@ -119,7 +119,7 @@
       <p>
           - Usá "P", "Q", etc. como variables.
           <br />
-          - Usá "∨" o "||" para disyunción y "∧" o "&&" para conjunción.
+          - Usá "∨", "||" o "+" para disyunción y "∧", "&&" o "." para conjunción.
           <br />
           - Usá "⊻" o "!==" para disyunción exclusiva.
           <br />
@@ -241,7 +241,9 @@
               expressions.forEach(expr => {
                   exprRes = eval(
                       expr.replace(/∧/g, "&&")
+                    .replace(/./g, "&&")
                           .replace(/∨/g, "||")
+                    .replace(/+/g, "||")
                           .replace(/↔/g, "===")
                           .replace(/⇔/g, "===")
                           .replace(/¬/g, "!")
