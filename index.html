@@ -100,13 +100,11 @@
     <div>
       <div class="rows">
         <label>Variables (Separadas con coma)</label>
-        <input type="text" id="vars" value="P,Q" />
+        <input type="text" id="vars" value="P,Q,R" />
       </div>
       <div class="rows">
         <label>Expresiones (Separadas por coma)</label>
-        <textarea id="expression" rows="5" cols="80">
-(P ∨ Q), (P ⊻ Q), (P ∧ Q), (P ↔ Q), ¬(P ∧ Q), (P → Q)</textarea
-        >
+        <textarea id="expression" rows="5" cols="80">(P ∨ Q), (P ⊻ Q), (P ∧ Q), (P ↔ Q), ¬(P ∧ Q), (P → Q), (P ∧ Q) → R</textarea>
       </div>
       <div class="rows">
         <button id="getResult">Generar Tabla de Verdad</button>
@@ -127,12 +125,12 @@
           <br />
           - Usá "↔", "⇔" o "===" para bicondicional.
           <br />
-          - Usá "=>" o "→" para implicación. (No es 100% funcional, aún no puede hacer implicaciones compuestas [Ej: (P ∧ Q) → R], TO-DO.)
+          - Usá "=>" o "→" para implicación.
       </p>
   </div>
     <script>
-      var vars = ["P", "Q"],
-        expressions = ["( P ∨ Q )", "( P ⊻ Q )", "( P ∧ Q )", "(P ↔ Q)", "¬(P ∧ Q)", "(P → Q)"];
+      var vars = ["P", "Q", "R"],
+        expressions = ["( P ∨ Q )", "( P ⊻ Q )", "( P ∧ Q )", "(P ↔ Q)", "¬(P ∧ Q)", "(P → Q)", "(P ∧ Q) → R"];
 
       document.getElementById("getResult").addEventListener("click", () => {
         var len = vars.length,
@@ -204,64 +202,66 @@
         return arr;
       }
 
-      function writeTruthTable(truthData) {
-          var table = "<table cellpadding=0 cellspacing=0>",
-              keys,
-              vals,
-              exprRes;
+    function writeTruthTable(truthData) {
+      var table = "<table cellpadding=0 cellspacing=0>",
+          keys,
+          vals,
+          exprRes;
 
-          table += "<thead><tr>";
-          vars.forEach(v => {
-              table += "<th>";
-              table += v;
-              table += "</th>";
-          });
-          expressions.forEach(v => {
-              table += "<th>";
-              table += v;
-              table += "</th>";
-          });
-          table += "</tr></thead>";
+      table += "<thead><tr>";
+      vars.forEach(v => {
+          table += "<th>";
+          table += v;
+          table += "</th>";
+      });
+      expressions.forEach(v => {
+          table += "<th>";
+          table += v;
+          table += "</th>";
+      });
+      table += "</tr></thead>";
 
-          truthData.forEach(v => {
-              vals = [];
-              keys = [];
-              table += "<tr>";
-              console.log(v);
-              for (i in v) {
-                  vals.push(v[i]);
-                  keys.push(i);
-                  table += "<td>";
-                  table += v[i];
-                  table += "</td>";
+      truthData.forEach(v => {
+          vals = [];
+          keys = [];
+          table += "<tr>";
+          console.log(v);
+          for (i in v) {
+              vals.push(v[i]);
+              keys.push(i);
+              table += "<td>";
+              table += v[i];
+              table += "</td>";
+          }
+          for (var i = 0; i < keys.length; i++) {
+              eval(`var ${keys[i]} = ${vals[i]};`);
+          }
+          expressions.forEach(expr => {
+              exprRes = eval(
+                  expr.replace(/∧/g, "&&")
+                      .replace(/∨/g, "||")
+                      .replace(/⊻/g, "!==")
+                      .replace(/↔/g, "==")
+                      .replace(/¬/g, "!")
+                      .replace(/~/g, "!")
+                      .replace(/=>/g, "&& !")
+                      .replace(/→/g, "&& !")
+              );
+              if (expr.includes("=>") || expr.includes("→")) {
+                  exprRes = !exprRes;
               }
-              for (var i = 0; i < keys.length; i++) {
-                  eval(`var ${keys[i]} = ${vals[i]};`);
-              }
-              expressions.forEach(expr => {
-                  exprRes = eval(
-                      expr.replace(/∧/g, "&&")
-                          .replace(/∨/g, "||")
-                          .replace(/↔/g, "===")
-                          .replace(/⇔/g, "===")
-                          .replace(/¬/g, "!")
-                          .replace(/~/g, "!")
-                          .replace(/⊻/g, "!==")
-                          .replace(/(\w+)\s*=>\s*(\w+)/g, "(!$1 || $2)") // Implicación
-                          .replace(/(\w+)\s*→\s*(\w+)/g, "(!$1 || $2)")
-                  );
-                  table += `<td class="${!!exprRes}">`;
-                  table += exprRes ? "V" : "F";
-                  table += "</td>";
-              });
-
-              table += "</tr>";
+              table += `<td class="${!!exprRes}">`;
+              table += exprRes ? "V" : "F";
+              table += "</td>";
           });
 
-          table += "</table>";
+          table += "</tr>";
+      });
 
-          document.getElementById("result").innerHTML = table;
-      }
+      table += "</table>";
+
+      document.getElementById("result").innerHTML = table;
+    }
 
       function permut(arr, c) {
         var buf = [],
